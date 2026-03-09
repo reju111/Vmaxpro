@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIDEO MAX PRO — Ultimate Video Player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #FF6D00;
+  --red-dark: #E65100;
+  --red-glow: rgba(255,109,0,0.4);
+  --red-soft: rgba(255,109,0,0.12);
+  --bg: #000000;
+  --bg2: #0A0A0A;
+  --bg3: #111111;
+  --card: #141414;
+  --border: rgba(255,255,255,0.06);
+  --text: #F0F0F0;
+  --muted: #888;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #000000;
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ── CUSTOM SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  height: 64px;
+  background: rgba(6,6,8,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s;
+}
+nav.scrolled { background: rgba(6,6,8,0.97); }
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.nav-logo .logo-icon {
+  width: 34px; height: 34px;
+  background: var(--red);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 24px rgba(255,109,0,0.5);
+}
+.nav-logo span {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.nav-logo span em { color: var(--red); font-style: normal; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--red);
+  color: #fff !important;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 700 !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+}
+.nav-cta:hover { background: #FF6D00 !important; box-shadow: 0 0 24px rgba(255,109,0,0.5); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 100px 5% 60px;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,109,0,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 50%, rgba(255,109,0,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 90% 60%, rgba(255,109,0,0.04) 0%, transparent 50%);
+}
+/* Animated grid lines */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,109,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,109,0,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+  animation: gridShift 20s linear infinite;
+}
+@keyframes gridShift {
+  from { transform: translateY(0); }
+  to { transform: translateY(60px); }
+}
+.hero-content {
+  position: relative;
+  text-align: center;
+  max-width: 900px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,109,0,0.12);
+  border: 1px solid rgba(255,109,0,0.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+  letter-spacing: 1px;
+  margin-bottom: 28px;
+  animation: fadeUp 0.6s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  animation: pulse 1.5s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(60px, 12vw, 130px);
+  line-height: 0.9;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+  animation: fadeUp 0.7s ease 0.1s both;
+}
+.hero h1 .line1 { color: var(--text); display: block; }
+.hero h1 .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--red) 0%, #FF8C00 50%, var(--red) 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientMove 3s ease infinite, fadeUp 0.7s ease 0.1s both;
+}
+@keyframes gradientMove {
+  0%, 100% { background-position: 0%; }
+  50% { background-position: 100%; }
+}
+.hero h1 .line3 {
+  color: var(--text);
+  display: block;
+  font-size: 0.42em;
+  letter-spacing: 14px;
+  opacity: 0.5;
+  margin-top: 4px;
+}
+.hero-desc {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 540px;
+  margin: 24px auto 40px;
+  line-height: 1.7;
+  font-weight: 400;
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.9s ease 0.3s both;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--red);
+  color: #fff;
+  text-decoration: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.25s;
+  box-shadow: 0 0 30px var(--red-glow);
+}
+.btn-primary:hover { background: #FF5722; transform: translateY(-2px); box-shadow: 0 8px 40px var(--red-glow); }
+.btn-primary svg { width: 20px; height: 20px; }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text);
+  text-decoration: none;
+  padding: 16px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  transition: all 0.25s;
+}
+.btn-secondary:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); }
+
+/* Version badge */
+.version-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 20px;
+  padding: 4px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.version-tag .dot { width: 6px; height: 6px; background: #4CAF50; border-radius: 50%; animation: pulse 2s infinite; }
+
+/* Scroll indicator */
+.scroll-hint {
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 11px; letter-spacing: 1px;
+  animation: bounce 2s infinite;
+}
+.scroll-hint svg { width: 16px; height: 16px; }
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+/* Mock phone */
+.hero-phone {
+  position: relative;
+  margin-top: 60px;
+  animation: fadeUp 1s ease 0.5s both;
+}
+.phone-frame {
+  width: 220px;
+  height: 440px;
+  background: var(--card);
+  border-radius: 36px;
+  border: 2px solid rgba(255,255,255,0.12);
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(255,109,0,0.15);
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(160deg, #0A0A0A 0%, #0D0D0D 100%);
+  display: flex;
+  flex-direction: column;
+}
+.phone-topbar {
+  height: 44px;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.phone-topbar-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, var(--red), #FFAB40, var(--red));
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientMove 2s infinite;
+  flex: 1;
+  text-align: center;
+}
+.phone-icon { font-size: 12px; }
+.phone-content { flex: 1; padding: 8px; overflow: hidden; }
+.phone-video-card {
+  background: var(--bg3);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.phone-thumb {
+  height: 70px;
+  background: linear-gradient(135deg, #0D0D0D 0%, #1A1A1A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.phone-thumb .play-btn {
+  width: 28px; height: 28px;
+  background: var(--red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 15px var(--red-glow);
+}
+.phone-thumb-bar {
+  position: absolute;
+  bottom: 4px; left: 8px; right: 8px;
+  height: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 1px;
+}
+.phone-thumb-bar::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%; width: 40%;
+  background: var(--red);
+  border-radius: 1px;
+}
+.phone-video-info { padding: 6px 8px; }
+.phone-video-title { font-size: 9px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.phone-video-meta { font-size: 8px; color: var(--muted); }
+.phone-notch {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 80px; height: 22px;
+  background: #000000;
+  border-radius: 0 0 16px 16px;
+}
+
+/* ── SECTIONS ── */
+section { padding: 100px 5%; position: relative; }
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--red);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: var(--red);
+}
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 60px);
+  letter-spacing: 2px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 500px;
+  line-height: 1.7;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 5%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 42px;
+  color: var(--red);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+
+/* ── FEATURES ── */
+#features { background: var(--bg2); }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 56px;
+}
+.feature-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.feature-card.visible { opacity: 1; transform: translateY(0); }
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feature-card:hover { border-color: rgba(255,109,0,0.25); transform: translateY(-4px); background: #1a1a1e; }
+.feature-card:hover::before { opacity: 1; }
+.feature-icon {
+  width: 48px; height: 48px;
+  background: var(--red-soft);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,109,0,0.2);
+}
+.feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.feature-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+.feature-tag {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--red);
+  background: var(--red-soft);
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+
+/* ── SCREENSHOTS ── */
+#screenshots { overflow: hidden; }
+.screenshots-track-outer {
+  margin-top: 56px;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
+}
+.screenshots-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  animation: scrollLeft 30s linear infinite;
+}
+.screenshots-track:hover { animation-play-state: paused; }
+@keyframes scrollLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.screenshot-card {
+  width: 180px;
+  height: 360px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255,109,0,0.2);
+  position: relative;
+  flex-shrink: 0;
+  background: var(--card);
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.screenshot-card:hover { transform: scale(1.04); box-shadow: 0 12px 40px rgba(255,109,0,0.2); }
+.screenshot-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+/* Simulated screenshot screens */
+.ss-1 { background: linear-gradient(160deg, #050505, #0D0D0D); }
+.ss-2 { background: linear-gradient(160deg, #050505, #0A0A0A); }
+.ss-3 { background: linear-gradient(160deg, #050505, #0D0D0D); }
+.ss-4 { background: linear-gradient(160deg, #050505, #0A0A0A); }
+.ss-5 { background: linear-gradient(160deg, #050505, #0D0D0D); }
+.ss-header {
+  height: 40px;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.ss-body { flex: 1; padding: 8px; }
+.ss-item {
+  height: 52px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+.ss-thumb { width: 36px; height: 28px; background: rgba(255,109,0,0.2); border-radius: 4px; flex-shrink: 0; }
+.ss-lines { flex: 1; }
+.ss-line { height: 5px; background: rgba(255,255,255,0.12); border-radius: 2px; margin-bottom: 4px; }
+.ss-line.short { width: 60%; }
+.ss-player {
+  height: 90px;
+  background: rgba(0,0,0,0.5);
+  margin-bottom: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.ss-player-btn {
+  width: 30px; height: 30px;
+  background: var(--red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 24px rgba(255,109,0,0.5);
+}
+.ss-bar {
+  position: absolute;
+  bottom: 8px; left: 8px; right: 8px;
+  height: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 1px;
+}
+.ss-bar::after {
+  content: '';
+  position: absolute;
+  left: 0; height: 100%;
+  border-radius: 1px;
+  background: var(--red);
+}
+.ss-bar.p40::after { width: 40%; }
+.ss-bar.p65::after { width: 65%; }
+.ss-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  padding: 20px 10px 10px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── FORMATS ── */
+#formats { background: var(--bg2); }
+.formats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 40px;
+}
+.format-pill {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: all 0.2s;
+  opacity: 0;
+  transform: scale(0.9);
+}
+.format-pill.visible { opacity: 1; transform: scale(1); }
+.format-pill:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: var(--red-soft);
+}
+.format-pill.highlight {
+  background: var(--red-soft);
+  border-color: rgba(255,109,0,0.4);
+  color: var(--red);
+}
+
+/* ── WHAT'S NEW ── */
+.changelog {
+  margin-top: 48px;
+  display: grid;
+  gap: 16px;
+  max-width: 700px;
+}
+.changelog-item {
+  display: flex;
+  gap: 20px;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.5s;
+}
+.changelog-item.visible { opacity: 1; transform: translateX(0); }
+.changelog-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--red);
+  background: var(--red-soft);
+  border: 1px solid rgba(255,109,0,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  height: fit-content;
+  margin-top: 2px;
+}
+.changelog-content h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.changelog-content ul { list-style: none; }
+.changelog-content ul li {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.changelog-content ul li::before {
+  content: '▸';
+  color: var(--red);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── DOWNLOAD ── */
+#download {
+  text-align: center;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,109,0,0.12) 0%, transparent 70%);
+}
+.download-card {
+  max-width: 500px;
+  margin: 48px auto 0;
+  background: var(--card);
+  border: 1px solid rgba(255,109,0,0.2);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 0 60px rgba(255,109,0,0.08);
+}
+.download-icon {
+  width: 72px; height: 72px;
+  background: var(--red);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 32px;
+  box-shadow: 0 0 40px var(--red-glow);
+}
+.download-card h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.download-card p { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+.download-meta {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+.download-meta span {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.download-meta span::before {
+  content: '✓';
+  color: #4CAF50;
+  font-weight: 700;
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  padding: 40px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--text);
+}
+.footer-logo em { color: var(--red); font-style: normal; }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { color: var(--muted); font-size: 12px; }
+
+/* ── ADMIN PANEL ── */
+#admin-panel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+}
+#admin-panel.open { display: block; }
+.admin-inner {
+  min-height: 100vh;
+  background: #000000;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 0 60px;
+}
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.admin-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 3px;
+}
+.admin-title em { color: var(--red); font-style: normal; }
+.admin-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+.admin-close:hover { border-color: var(--red); color: var(--red); }
+
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+  padding: 32px;
+}
+.admin-login h2 { font-family: var(--font-display); font-size: 32px; letter-spacing: 3px; }
+.admin-login input {
+  width: 100%; max-width: 320px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.admin-login input:focus { border-color: var(--red); }
+.admin-login button {
+  width: 100%; max-width: 320px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.admin-login button:hover { background: #FF5722; }
+.admin-error { color: #FF6D00; font-size: 13px; display: none; }
+.admin-error.show { display: block; }
+
+.admin-dashboard { padding: 28px 32px; display: none; }
+.admin-dashboard.show { display: block; }
+.admin-section { margin-bottom: 32px; }
+.admin-section-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--red);
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.admin-field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.admin-field input,
+.admin-field textarea,
+.admin-field select {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+.admin-field input:focus,
+.admin-field textarea:focus { border-color: var(--red); }
+.admin-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.admin-toggle-row span { font-size: 14px; }
+.toggle-switch {
+  width: 44px; height: 24px;
+  background: #333;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  border: none;
+  flex-shrink: 0;
+}
+.toggle-switch.on { background: var(--red); }
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+.toggle-switch.on::after { transform: translateX(20px); }
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.admin-btn:hover { background: #FF5722; }
+.admin-btn.secondary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.admin-btn.secondary:hover { border-color: rgba(255,255,255,0.3); }
+.admin-save-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.save-status { font-size: 13px; color: #4CAF50; display: none; }
+.save-status.show { display: block; }
+
+/* Screenshots upload area */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--muted);
+  font-size: 13px;
+}
+.upload-area:hover { border-color: rgba(255,109,0,0.4); color: var(--red); }
+.screenshots-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.preview-img {
+  width: 80px; height: 140px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .features-grid { grid-template-columns: 1fr; }
+  .admin-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; text-align: center; }
+  .footer-links { justify-content: center; }
+  .admin-topbar { padding: 16px 20px; }
+  .admin-dashboard { padding: 20px; }
+  .admin-save-bar { padding: 14px 20px; }
+}
+
+/* Feature highlight row */
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  margin: 80px 0;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s ease;
+}
+.feature-row.visible { opacity: 1; transform: translateY(0); }
+.feature-row.reverse { flex-direction: row-reverse; }
+.feature-row-text { flex: 1; }
+.feature-row-text .section-label { margin-bottom: 12px; }
+.feature-row-text h2 { font-size: clamp(28px, 4vw, 48px); margin-bottom: 14px; }
+.feature-row-text p { color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 20px; }
+.feature-bullets { list-style: none; }
+.feature-bullets li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  padding: 6px 0;
+}
+.feature-bullets li span.bullet {
+  width: 18px; height: 18px;
+  background: var(--red-soft);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  color: var(--red);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.feature-row-visual {
+  flex: 1;
+  min-width: 0;
+}
+.feature-visual-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.feature-visual-box::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(255,109,0,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .feature-row { flex-direction: column; gap: 32px; }
+  .feature-row.reverse { flex-direction: column; }
+}
+
+/* Volume boost visual */
+.volume-visual {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  height: 80px;
+  justify-content: center;
+}
+.vol-bar {
+  width: 20px;
+  border-radius: 4px 4px 0 0;
+  background: var(--red);
+  transition: height 1s ease;
+}
+.vol-bar.boost { background: linear-gradient(to top, var(--red), #FF8C00); }
+
+/* Format badges */
+.format-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.fmt-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.fmt-badge.hot { background: rgba(255,109,0,0.15); color: var(--red); border: 1px solid rgba(255,109,0,0.25); }
+.fmt-badge.cool { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="logo-icon" style="background:none;padding:0;overflow:hidden"><img src="https://i.imgur.com/LrArnt7.jpeg" style="width:34px;height:34px;object-fit:cover;border-radius:8px"></div>
+    <span>VIDEO MAX <em>PRO</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#formats">Formats</a>
+    <a href="#whats-new">What's New</a>
+    <a href="#developer">Developer</a>
+    <a href="#download" class="nav-cta">Download APK</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔥 VERSION 4.0.0 PRO — JUST LAUNCHED</div>
+    <h1>
+      <span class="line1">VIDEO</span>
+      <span class="line2">MAX</span>
+      <span class="line3">PRO</span>
+    </h1>
+    <p class="hero-desc">
+      The ultimate Android video player. Every format. Blazing performance.
+      Private vault, smart ads, and VLC-level volume boost — all in one.
+    </p>
+    <div class="hero-actions">
+      <a href="#download" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/></svg>
+        Download APK
+      </a>
+      <a href="#features" class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z" fill="currentColor" stroke="none"/></svg>
+        See Features
+      </a>
+    </div>
+    <div style="margin-top:20px">
+      <span class="version-tag"><span class="dot"></span> v4.0.0 PRO &nbsp;·&nbsp; 38 MB &nbsp;·&nbsp; Android 8+</span>
+    </div>
+
+    <!-- Phone mockup -->
+    <div class="hero-phone">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-topbar">
+            <img src="https://i.imgur.com/LrArnt7.jpeg" style="width:22px;height:22px;border-radius:5px;object-fit:cover">
+            <span class="phone-topbar-title">VIDEO MAX PRO</span>
+            <span class="phone-icon">🔍</span>
+          </div>
+          <div class="phone-content">
+            <div class="phone-video-card">
+              <div class="phone-thumb">
+                <div class="play-btn">▶</div>
+                <div class="phone-thumb-bar"></div>
+              </div>
+              <div class="phone-video-info">
+                <div class="phone-video-title">Action Movie 2024.mkv</div>
+                <div class="phone-video-meta">1:52:34 &nbsp;·&nbsp; 2.8 GB</div>
+              </div>
+            </div>
+            <div class="phone-video-card">
+              <div class="phone-thumb" style="background:linear-gradient(135deg,#0a1a05,#1a2a0a)">
+                <div class="play-btn">▶</div>
+                <div class="phone-thumb-bar"></div>
+              </div>
+              <div class="phone-video-info">
+                <div class="phone-video-title">Documentary.mp4</div>
+                <div class="phone-video-meta">0:45:12 &nbsp;·&nbsp; 850 MB</div>
+              </div>
+            </div>
+            <div class="phone-video-card">
+              <div class="phone-thumb" style="background:linear-gradient(135deg,#0a0a1a,#0a1520)">
+                <div class="play-btn">▶</div>
+                <div class="phone-thumb-bar"></div>
+              </div>
+              <div class="phone-video-info">
+                <div class="phone-video-title">Short_clip.webm</div>
+                <div class="phone-video-meta">0:03:45 &nbsp;·&nbsp; 124 MB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar fade-up">
+  <div class="stat-item">
+    <div class="stat-num" data-target="15">0</div>
+    <div class="stat-label">VIDEO FORMATS</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="200">0</div>
+    <div class="stat-label">% VOLUME BOOST</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="50">0</div>
+    <div class="stat-label">K+ DOWNLOADS</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" data-target="4.8">0</div>
+    <div class="stat-label">★ RATING</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">WHAT WE OFFER</div>
+  <h2>PACKED WITH<br>POWER FEATURES</h2>
+  <p class="section-sub">Every feature you'd ever need in a video player, built for Android with love.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🔊</div>
+      <h3>VLC-Style Volume Boost</h3>
+      <p>Push volume beyond system limits. Up to 200% boost using LoudnessEnhancer — perfect for quiet videos or outdoor watching.</p>
+      <span class="feature-tag">SIGNATURE FEATURE</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Private Vault</h3>
+      <p>Lock private videos behind SHA-256 PIN or biometric fingerprint. Your private content stays completely hidden from others.</p>
+      <span class="feature-tag">SECURITY</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎬</div>
+      <h3>All Video Formats</h3>
+      <p>MKV, AVI, FLV, MOV, WebM, TS, 3GP, WMV, MP4, RMVB and many more. If your phone can read it, we can play it.</p>
+      <span class="feature-tag">15+ FORMATS</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Network Streaming</h3>
+      <p>Play videos directly from URLs — HTTP, M3U8 (HLS), MPD (DASH), IPTV streams. No download needed.</p>
+      <span class="feature-tag">STREAMING</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🖼️</div>
+      <h3>Picture-in-Picture</h3>
+      <p>Keep watching while you multitask. PiP mode works seamlessly across your Android device, auto-sized and smooth.</p>
+      <span class="feature-tag">MULTITASK</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📑</div>
+      <h3>Subtitle Support</h3>
+      <p>Load .SRT, .ASS, .SSA, .VTT subtitles externally, or use embedded tracks inside MKV and other containers.</p>
+      <span class="feature-tag">ACCESSIBILITY</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏱️</div>
+      <h3>Sleep Timer</h3>
+      <p>Set a timer to automatically stop playback. Great for falling asleep to a show without draining your battery all night.</p>
+      <span class="feature-tag">SMART</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔖</div>
+      <h3>Bookmarks</h3>
+      <p>Save your favorite moments in any video with one tap. Resume any bookmark instantly — never lose your place again.</p>
+      <span class="feature-tag">PRODUCTIVITY</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌙</div>
+      <h3>Gesture Controls</h3>
+      <p>Swipe left for brightness, swipe right for volume, drag horizontally to seek. Double-tap either side for 10-second skip.</p>
+      <span class="feature-tag">INTUITIVE</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Theme Store</h3>
+      <p>Choose from multiple premium themes to personalize your player. Glassmorphism UI with animated backgrounds.</p>
+      <span class="feature-tag">CUSTOMIZABLE</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎵</div>
+      <h3>Music Player</h3>
+      <p>Built-in audio player with background playback. Listen to music while using other apps — no extra app needed.</p>
+      <span class="feature-tag">BONUS</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Hardware Acceleration</h3>
+      <p>4K videos, heavy MKV files — all decoded with hardware acceleration for smooth, battery-efficient playback.</p>
+      <span class="feature-tag">PERFORMANCE</span>
+    </div>
+  </div>
+
+  <!-- Feature rows -->
+  <div class="feature-row">
+    <div class="feature-row-text">
+      <div class="section-label">VLC-LEVEL AUDIO</div>
+      <h2>VOLUME<br>BEYOND LIMITS</h2>
+      <p>System max volume not enough? VIDEO MAX PRO uses Android's LoudnessEnhancer to push audio up to 200% — the same technique used by VLC on desktop.</p>
+      <ul class="feature-bullets">
+        <li><span class="bullet">✓</span> Up to 200% volume amplification</li>
+        <li><span class="bullet">✓</span> Smart transition from system to boost volume</li>
+        <li><span class="bullet">✓</span> Visual indicator shows boost level in real-time</li>
+        <li><span class="bullet">✓</span> Fire icon (🔥) appears during boost mode</li>
+      </ul>
+    </div>
+    <div class="feature-row-visual">
+      <div class="feature-visual-box">
+        <div style="text-align:center;margin-bottom:16px">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--red)">VOLUME LEVEL</span>
+        </div>
+        <div class="volume-visual" id="volVisual">
+          <div class="vol-bar" style="height:30%"></div>
+          <div class="vol-bar" style="height:45%"></div>
+          <div class="vol-bar" style="height:60%"></div>
+          <div class="vol-bar" style="height:75%"></div>
+          <div class="vol-bar" style="height:90%"></div>
+          <div class="vol-bar boost" style="height:100%"></div>
+          <div class="vol-bar boost" style="height:115%;background:linear-gradient(to top,#FF6D00,#FF8C00,#ffcc02)"></div>
+          <div class="vol-bar boost" style="height:130%;background:linear-gradient(to top,#FF6D00,#FF8C00,#ffcc02,#fff)"></div>
+        </div>
+        <div style="text-align:center;margin-top:16px;font-family:var(--font-mono);font-size:18px;color:#FF8C00;font-weight:700">🔥 150%</div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">BOOST ACTIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-row reverse">
+    <div class="feature-row-text">
+      <div class="section-label">FORMATS SUPPORT</div>
+      <h2>PLAYS<br>EVERYTHING</h2>
+      <p>Don't worry about "unsupported format" errors ever again. VIDEO MAX PRO is built on ExoPlayer with custom MIME type handling for every major video container.</p>
+      <ul class="feature-bullets">
+        <li><span class="bullet">✓</span> 15+ video container formats</li>
+        <li><span class="bullet">✓</span> Embedded subtitle track support</li>
+        <li><span class="bullet">✓</span> Multiple audio track switching</li>
+        <li><span class="bullet">✓</span> Hardware + software decoder fallback</li>
+      </ul>
+    </div>
+    <div class="feature-row-visual">
+      <div class="feature-visual-box">
+        <div class="format-cloud">
+          <span class="fmt-badge hot">MP4</span>
+          <span class="fmt-badge hot">MKV</span>
+          <span class="fmt-badge hot">AVI</span>
+          <span class="fmt-badge cool">FLV</span>
+          <span class="fmt-badge hot">MOV</span>
+          <span class="fmt-badge cool">WebM</span>
+          <span class="fmt-badge cool">TS</span>
+          <span class="fmt-badge hot">M3U8</span>
+          <span class="fmt-badge cool">3GP</span>
+          <span class="fmt-badge cool">WMV</span>
+          <span class="fmt-badge hot">MPD</span>
+          <span class="fmt-badge cool">RMVB</span>
+          <span class="fmt-badge cool">ASF</span>
+          <span class="fmt-badge cool">MTS</span>
+          <span class="fmt-badge hot">MP3</span>
+          <span class="fmt-badge cool">FLAC</span>
+          <span class="fmt-badge cool">AAC</span>
+          <span class="fmt-badge cool">OGG</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section id="screenshots">
+  <div class="section-label">APP SCREENSHOTS</div>
+  <h2>SEE IT<br>IN ACTION</h2>
+  <p class="section-sub">Clean dark UI with glassmorphism design, smooth animations throughout.</p>
+
+  <div class="screenshots-track-outer">
+    <div class="screenshots-track" id="ssTrack">
+      <!-- Real screenshots — set 1 -->
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/kOIMSQX.png" alt="Folder View" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">📁 Folder View</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/UYQeiPD.png" alt="Music Player" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🎵 Music Player</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/MkL5qRg.png" alt="Private Vault" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🔒 Private Vault</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/vIznDSe.png" alt="Settings" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">⚙ Settings</div>
+      </div>
+      <div class="screenshot-card" style="width:320px">
+        <img src="https://i.imgur.com/s7r0KWW.png" alt="Volume Boost" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🔊 Volume Boost 200%</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/clskHwD.png" alt="App Screenshot" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">▶ Video Player</div>
+      </div>
+      <!-- Duplicate set for seamless infinite scroll -->
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/kOIMSQX.png" alt="Folder View" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">📁 Folder View</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/UYQeiPD.png" alt="Music Player" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🎵 Music Player</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/MkL5qRg.png" alt="Private Vault" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🔒 Private Vault</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/vIznDSe.png" alt="Settings" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">⚙ Settings</div>
+      </div>
+      <div class="screenshot-card" style="width:320px">
+        <img src="https://i.imgur.com/s7r0KWW.png" alt="Volume Boost" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">🔊 Volume Boost 200%</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="https://i.imgur.com/clskHwD.png" alt="App Screenshot" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <div class="ss-label">▶ Video Player</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FORMATS -->
+<section id="formats">
+  <div class="section-label">COMPATIBILITY</div>
+  <h2>EVERY FORMAT<br>YOU NEED</h2>
+  <p class="section-sub">Built on ExoPlayer with smart MIME type handling. Video, audio, streaming — all covered.</p>
+  <div class="formats-grid">
+    <span class="format-pill highlight">MP4</span><span class="format-pill highlight">MKV</span><span class="format-pill highlight">AVI</span>
+    <span class="format-pill">FLV</span><span class="format-pill highlight">MOV</span><span class="format-pill">WebM</span>
+    <span class="format-pill">TS</span><span class="format-pill highlight">M3U8 (HLS)</span><span class="format-pill">3GP</span>
+    <span class="format-pill">WMV</span><span class="format-pill highlight">MPD (DASH)</span><span class="format-pill">RMVB</span>
+    <span class="format-pill">ASF</span><span class="format-pill">MTS</span><span class="format-pill">M2TS</span>
+    <span class="format-pill highlight">MP3</span><span class="format-pill">FLAC</span><span class="format-pill">AAC</span>
+    <span class="format-pill">OGG</span><span class="format-pill">WAV</span><span class="format-pill highlight">SRT (Subtitle)</span>
+    <span class="format-pill">ASS</span><span class="format-pill">SSA</span><span class="format-pill">VTT</span>
+  </div>
+</section>
+
+<!-- WHAT'S NEW -->
+<section id="whats-new" style="background:var(--bg2)">
+  <div class="section-label">CHANGELOG</div>
+  <h2>WHAT'S NEW IN<br>VERSION 4.0</h2>
+  <p class="section-sub">Packed with new features, fixes, and major improvements.</p>
+
+  <div class="changelog" id="changelog">
+    <div class="changelog-item">
+      <div class="changelog-version">v4.0.0</div>
+      <div class="changelog-content">
+        <h4>🚀 Major Release — Ultimate Edition</h4>
+        <ul>
+          <li>Brand new glassmorphism UI with animated gradient title</li>
+          <li>Animated splash screen with 3D logo and loading dots</li>
+          <li>Private vault with biometric + SHA-256 PIN protection</li>
+          <li>VLC-style volume boost up to 200% with visual indicator</li>
+          <li>Network streaming — HLS, DASH, IPTV, direct URL</li>
+        </ul>
+      </div>
+    </div>
+    <div class="changelog-item">
+      <div class="changelog-version">v3.5.0</div>
+      <div class="changelog-content">
+        <h4>🎬 Player Overhaul</h4>
+        <ul>
+          <li>Double-tap 10-second skip with Netflix-style ripple animation</li>
+          <li>Horizontal drag-to-seek with real-time position display</li>
+          <li>External subtitle loading (.srt, .ass, .ssa, .vtt)</li>
+          <li>Multiple audio track switching mid-playback</li>
+          <li>PiP mode improvements and auto-enter on back</li>
+        </ul>
+      </div>
+    </div>
+    <div class="changelog-item">
+      <div class="changelog-version">v3.0.0</div>
+      <div class="changelog-content">
+        <h4>🎨 UI & Customization</h4>
+        <ul>
+          <li>Theme store with premium animated backgrounds</li>
+          <li>Grid / List view toggle with thumbnail caching</li>
+          <li>Search screen with real-time highlighting</li>
+          <li>Folder statistics — total size, duration, count</li>
+          <li>Bookmark system with position saving</li>
+        </ul>
+      </div>
+    </div>
+    <div class="changelog-item">
+      <div class="changelog-version">v2.0.0</div>
+      <div class="changelog-content">
+        <h4>⚡ Performance & Formats</h4>
+        <ul>
+          <li>ExoPlayer upgrade with hardware acceleration</li>
+          <li>Added MKV, AVI, FLV, WMV, RMVB, WebM support</li>
+          <li>Thumbnail generation with disk cache</li>
+          <li>Resume playback from last position</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="section-label">GET THE APP</div>
+  <h2>DOWNLOAD<br>VIDEO MAX PRO</h2>
+  <p class="section-sub">Free to download. Zero bloat. Pure performance.</p>
+
+  <div class="download-card fade-up">
+    <div class="download-icon" style="background:none;padding:0;overflow:hidden;border-radius:18px;box-shadow:0 0 40px rgba(255,109,0,0.3)"><img src="https://i.imgur.com/LrArnt7.jpeg" style="width:72px;height:72px;object-fit:cover;border-radius:18px"></div>
+    <h3>VIDEO MAX PRO</h3>
+    <p>The ultimate Android video player — all formats, all features, zero compromise.</p>
+
+    <a href="YOUR_GOOGLE_DRIVE_LINK" target="_blank" class="btn-primary" id="downloadBtn" style="width:100%;justify-content:center">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/></svg>
+      Download APK — Free
+    </a>
+
+    <div class="download-meta">
+      <span>Android 8.0+</span>
+      <span>~38 MB</span>
+      <span>No ads in vault</span>
+      <span>No root needed</span>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPER -->
+<section id="developer" style="background:var(--bg2)">
+  <div class="section-label">THE MAKER</div>
+  <h2>MEET THE<br>DEVELOPER</h2>
+
+  <div class="dev-card fade-up" style="
+    max-width:520px;
+    margin:48px auto 0;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    overflow:hidden;
+  ">
+    <!-- Top banner -->
+    <div style="
+      height:80px;
+      background:linear-gradient(135deg, rgba(255,109,0,0.3) 0%, rgba(255,109,0,0.05) 100%);
+      position:relative;
+    ">
+      <div style="
+        position:absolute;
+        bottom:-36px; left:32px;
+        width:72px; height:72px;
+        background:var(--red);
+        border-radius:50%;
+        border:3px solid var(--card);
+        display:flex; align-items:center; justify-content:center;
+        font-family:var(--font-display);
+        font-size:28px;
+        letter-spacing:1px;
+        color:#fff;
+        box-shadow:0 0 30px var(--red-glow);
+      ">SM</div>
+    </div>
+
+    <!-- Info -->
+    <div style="padding:52px 32px 32px">
+      <h3 style="font-family:var(--font-display);font-size:28px;letter-spacing:2px;margin-bottom:4px">SAMIR MONDAL</h3>
+      <p style="font-size:13px;color:var(--red);font-weight:600;letter-spacing:1px;margin-bottom:16px">ANDROID DEVELOPER · VIDEO MAX PRO</p>
+      <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:24px">
+        Passionate Android developer building powerful, feature-rich apps for everyday users.
+        VIDEO MAX PRO is designed to be the only video player you'll ever need.
+      </p>
+
+      <!-- Contact -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a href="mailto:rejumondal10@gmail.com" style="
+          display:flex; align-items:center; gap:12px;
+          background:var(--bg3);
+          border:1px solid var(--border);
+          border-radius:10px;
+          padding:12px 16px;
+          text-decoration:none;
+          transition:all 0.2s;
+          color:var(--text);
+        " onmouseover="this.style.borderColor='rgba(255,109,0,0.4)';this.style.background='rgba(255,109,0,0.06)'"
+           onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg3)'">
+          <div style="width:36px;height:36px;background:var(--red-soft);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">✉️</div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px;letter-spacing:0.5px">EMAIL</div>
+            <div style="font-size:14px;font-weight:600">rejumondal10@gmail.com</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:18px">→</div>
+        </a>
+      </div>
+
+      <!-- App badge -->
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;color:var(--muted)">Creator of</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:26px;height:26px;border-radius:6px;overflow:hidden;box-shadow:0 0 12px rgba(255,109,0,0.4)"><img src="https://i.imgur.com/LrArnt7.jpeg" style="width:100%;height:100%;object-fit:cover"></div>
+          <span style="font-family:var(--font-display);font-size:16px;letter-spacing:2px">VIDEO MAX <em style="color:var(--red);font-style:normal">PRO</em></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo" style="display:flex;align-items:center;gap:10px"><img src="https://i.imgur.com/LrArnt7.jpeg" style="width:28px;height:28px;border-radius:7px;object-fit:cover">VIDEO MAX <em>PRO</em></div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#download">Download</a>
+    <a href="#developer">Developer</a>
+    <a href="#" onclick="openAdmin();return false;" style="color:rgba(255,255,255,0.15);font-size:11px">⚙</a>
+  </div>
+  <div class="footer-copy">© 2025 VIDEO MAX PRO · Made by <strong style="color:var(--red)">Samir Mondal</strong> · <a href="mailto:rejumondal10@gmail.com" style="color:var(--muted);text-decoration:none">rejumondal10@gmail.com</a></div>
+</footer>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-inner">
+    <div class="admin-topbar">
+      <div class="admin-title">VIDEO MAX <em>PRO</em> — ADMIN</div>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+
+    <!-- Login -->
+    <div class="admin-login" id="adminLogin">
+      <h2>ADMIN LOGIN</h2>
+      <p style="color:var(--muted);font-size:13px">Enter your admin password to continue</p>
+      <input type="password" id="adminPass" placeholder="Admin password" onkeydown="if(event.key==='Enter')checkAdmin()">
+      <button onclick="checkAdmin()">Login →</button>
+      <p class="admin-error" id="adminError">❌ Wrong password</p>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="admin-dashboard" id="adminDash">
+
+      <!-- App Info -->
+      <div class="admin-section">
+        <div class="admin-section-title">APP INFORMATION</div>
+        <div class="admin-grid">
+          <div class="admin-field"><label>App Version</label><input type="text" id="appVersion" placeholder="e.g. 4.0.0"></div>
+          <div class="admin-field"><label>APK Download URL (Google Drive direct link)</label><input type="text" id="apkUrl" placeholder="https://drive.google.com/uc?export=download&id=YOUR_FILE_ID"></div>
+          <div class="admin-field"><label>APK File Size</label><input type="text" id="apkSize" placeholder="e.g. 38 MB"></div>
+          <div class="admin-field"><label>Release Date</label><input type="text" id="releaseDate" placeholder="e.g. December 2024"></div>
+        </div>
+      </div>
+
+      <!-- Download Button -->
+      <div class="admin-section">
+        <div class="admin-section-title">DOWNLOAD BUTTON</div>
+        <div class="admin-grid">
+          <div class="admin-field"><label>Button Text</label><input type="text" id="dlBtnText" placeholder="Download APK — Free"></div>
+          <div class="admin-field"><label>Button URL</label><input type="text" id="dlBtnUrl" placeholder="Direct APK link"></div>
+        </div>
+      </div>
+
+      <!-- Hero Section -->
+      <div class="admin-section">
+        <div class="admin-section-title">HERO SECTION</div>
+        <div class="admin-grid">
+          <div class="admin-field"><label>Hero Badge Text</label><input type="text" id="heroBadge" placeholder="🔥 VERSION 4.0.0 PRO"></div>
+          <div class="admin-field"><label>Hero Description</label><input type="text" id="heroDesc" placeholder="Short tagline..."></div>
+          <div class="admin-field"><label>Stats — Downloads</label><input type="number" id="statDownloads" placeholder="50000"></div>
+          <div class="admin-field"><label>Stats — Rating</label><input type="text" id="statRating" placeholder="4.8"></div>
+        </div>
+      </div>
+
+      <!-- Changelog -->
+      <div class="admin-section">
+        <div class="admin-section-title">WHAT'S NEW / CHANGELOG</div>
+        <div class="admin-field" style="margin-bottom:10px">
+          <label>Latest Version Number</label>
+          <input type="text" id="latestVer" placeholder="v4.0.0">
+        </div>
+        <div class="admin-field" style="margin-bottom:10px">
+          <label>Latest Release Title</label>
+          <input type="text" id="latestTitle" placeholder="e.g. 🚀 Major Release">
+        </div>
+        <div class="admin-field">
+          <label>Changelog (one bullet per line)</label>
+          <textarea id="changelogText" rows="6" placeholder="Brand new UI design&#10;Volume boost added&#10;Bug fixes..."></textarea>
+        </div>
+      </div>
+
+      <!-- Screenshots -->
+      <div class="admin-section">
+        <div class="admin-section-title">APP SCREENSHOTS (URLs)</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Enter screenshot image URLs (one per line). They will appear in the scrolling section.</p>
+        <div class="admin-field">
+          <textarea id="screenshotUrls" rows="5" placeholder="https://i.imgur.com/screenshot1.png&#10;https://i.imgur.com/screenshot2.png&#10;..."></textarea>
+        </div>
+        <button class="admin-btn" onclick="applyScreenshots()">Apply Screenshots</button>
+      </div>
+
+      <!-- App Logo -->
+      <div class="admin-section">
+        <div class="admin-section-title">APP LOGO / ICON</div>
+        <div class="admin-grid">
+          <div class="admin-field">
+            <label>Logo Image URL</label>
+            <input type="text" id="logoUrl" placeholder="https://... (leave blank for default ▶ icon)">
+          </div>
+          <div class="admin-field">
+            <label>App Name Line 1</label>
+            <input type="text" id="appName1" placeholder="VIDEO MAX">
+          </div>
+          <div class="admin-field">
+            <label>App Name Line 2 (colored)</label>
+            <input type="text" id="appName2" placeholder="PRO">
+          </div>
+          <div class="admin-field">
+            <label>Theme Color (hex)</label>
+            <input type="color" id="themeColor" value="#FF6D00">
+          </div>
+        </div>
+      </div>
+
+      <!-- App toggles -->
+      <div class="admin-section">
+        <div class="admin-section-title">VISIBILITY TOGGLES</div>
+        <div class="admin-toggle-row">
+          <span>Show Download Button</span>
+          <button class="toggle-switch on" id="toggleDownload" onclick="toggleEl(this)"></button>
+        </div>
+        <div class="admin-toggle-row">
+          <span>Show Screenshots Section</span>
+          <button class="toggle-switch on" id="toggleScreenshots" onclick="toggleEl(this)"></button>
+        </div>
+        <div class="admin-toggle-row">
+          <span>Show Stats Bar</span>
+          <button class="toggle-switch on" id="toggleStats" onclick="toggleEl(this)"></button>
+        </div>
+        <div class="admin-toggle-row">
+          <span>Show What's New Section</span>
+          <button class="toggle-switch on" id="toggleChangelog" onclick="toggleEl(this)"></button>
+        </div>
+      </div>
+
+      <!-- Notice Banner -->
+      <div class="admin-section">
+        <div class="admin-section-title">WEBSITE NOTICE BANNER</div>
+        <div class="admin-field">
+          <label>Notice Text (leave blank to hide)</label>
+          <input type="text" id="noticeBanner" placeholder="🔥 New version 4.1 coming soon!">
+        </div>
+        <button class="admin-btn" onclick="applyNotice()">Show Notice</button>
+        <button class="admin-btn secondary" onclick="hideNotice()">Hide Notice</button>
+      </div>
+
+    </div><!-- /admin-dashboard -->
+
+    <div class="admin-save-bar" id="adminSaveBar" style="display:none">
+      <button class="admin-btn" onclick="applyAll()">🔥 Firebase এ Save করো</button>
+      <button class="admin-btn secondary" onclick="closeAdmin()">বন্ধ করো</button>
+      <span class="save-status" id="saveStatus">✅ Firebase এ save হয়েছে!</span>
+    </div>
+
+  </div><!-- /admin-inner -->
+</div><!-- /admin-panel -->
+
+<!-- NOTICE BANNER -->
+<div id="noticeBannerEl" style="display:none;position:fixed;top:64px;left:0;right:0;z-index:800;background:var(--red);text-align:center;padding:10px 20px;font-size:13px;font-weight:600;color:#fff">
+  <span id="noticeBannerText"></span>
+  <button onclick="document.getElementById('noticeBannerEl').style.display='none'" style="background:none;border:none;color:#fff;margin-left:16px;cursor:pointer;font-size:16px">✕</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.feature-card, .changelog-item, .format-pill, .fade-up, .feature-row').forEach(el => {
+  observer.observe(el);
+});
+
+// Stagger feature cards
+document.querySelectorAll('.feature-card').forEach((card, i) => {
+  card.style.transitionDelay = `${i * 0.07}s`;
+});
+document.querySelectorAll('.format-pill').forEach((pill, i) => {
+  pill.style.transitionDelay = `${i * 0.04}s`;
+});
+document.querySelectorAll('.changelog-item').forEach((item, i) => {
+  item.style.transitionDelay = `${i * 0.12}s`;
+});
+
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ── COUNTER ANIMATION ──
+function animateCounter(el, target, suffix = '') {
+  const isFloat = target % 1 !== 0;
+  const duration = 2000;
+  const start = performance.now();
+  const update = (time) => {
+    const progress = Math.min((time - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = eased * target;
+    el.textContent = isFloat ? current.toFixed(1) + suffix : Math.floor(current) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+const statsObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('[data-target]').forEach(el => {
+        animateCounter(el, parseFloat(el.dataset.target));
+      });
+      statsObserver.disconnect();
+    }
+  });
+}, { threshold: 0.5 });
+const statsBar = document.querySelector('.stats-bar');
+if (statsBar) statsObserver.observe(statsBar);
+
+// ── FIREBASE CONFIG ──
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCoGsTOmFkBWq_1esaTCYJ2d4DCTvjMuLY",
+  authDomain: "video-max-618a3.firebaseapp.com",
+  databaseURL: "https://video-max-618a3-default-rtdb.firebaseio.com",
+  projectId: "video-max-618a3",
+  storageBucket: "video-max-618a3.firebasestorage.app",
+  messagingSenderId: "117686886714",
+  appId: "1:117686886714:web:3fc80757ca2c0998e77003"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const CONFIG_REF = db.ref('vmp_config');
+
+// ── ADMIN PASSWORD ──
+const ADMIN_HASH = 'fb2f73f87c88b7895b89d7ffa1aeb8641a84b2ab441a7a75e40eed39ff87f4c5';
+
+async function hashInput(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── APPLY CONFIG TO PAGE (runs on every visitor load) ──
+function applyConfig(data) {
+  if (!data) return;
+
+  if (data.appVersion) {
+    document.querySelector('.hero-badge').innerHTML = `🔥 VERSION ${data.appVersion} PRO — JUST LAUNCHED`;
+    document.querySelector('.version-tag').innerHTML = `<span class="dot"></span> v${data.appVersion} PRO &nbsp;·&nbsp; ${data.apkSize || '38 MB'} &nbsp;·&nbsp; Android 8+`;
+  }
+  if (data.apkUrl) document.getElementById('downloadBtn').href = data.apkUrl;
+  if (data.dlBtnText) {
+    const btn = document.getElementById('downloadBtn');
+    btn.childNodes[btn.childNodes.length - 1].textContent = ' ' + data.dlBtnText;
+  }
+  if (data.heroDesc) document.querySelector('.hero-desc').textContent = data.heroDesc;
+
+  if (data.themeColor) {
+    document.documentElement.style.setProperty('--red', data.themeColor);
+    document.documentElement.style.setProperty('--red-dark', data.themeColor);
+    document.documentElement.style.setProperty('--red-glow', data.themeColor + '66');
+    document.documentElement.style.setProperty('--red-soft', data.themeColor + '22');
+  }
+  if (data.appName1 || data.appName2) {
+    const n1 = data.appName1 || 'VIDEO MAX', n2 = data.appName2 || 'PRO';
+    document.querySelectorAll('.nav-logo span').forEach(el => el.innerHTML = `${n1} <em>${n2}</em>`);
+    const fl = document.querySelector('.footer-logo');
+    if (fl) fl.innerHTML = `<img src="https://i.imgur.com/LrArnt7.jpeg" style="width:28px;height:28px;border-radius:7px;object-fit:cover">${n1} <em>${n2}</em>`;
+  }
+  if (data.logoUrl) {
+    document.querySelectorAll('.logo-icon img, .download-icon img, .footer-logo img').forEach(img => img.src = data.logoUrl);
+  }
+
+  // Changelog
+  if (data.latestVer || data.latestTitle || data.changelogText) {
+    const firstItem = document.querySelector('.changelog-item');
+    if (firstItem) {
+      if (data.latestVer) firstItem.querySelector('.changelog-version').textContent = data.latestVer;
+      if (data.latestTitle) firstItem.querySelector('h4').textContent = data.latestTitle;
+      if (data.changelogText) {
+        const lines = data.changelogText.split('\n').filter(l => l.trim());
+        firstItem.querySelector('ul').innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+      }
+    }
+  }
+
+  // Screenshots
+  if (data.screenshotUrls) {
+    const urls = data.screenshotUrls.split('\n').filter(u => u.trim());
+    if (urls.length) {
+      const track = document.getElementById('ssTrack');
+      const labels = ['Home Screen','Player','Vault','Settings','Network','Grid View','Controls','Music','Themes','Subtitles'];
+      const doubled = [...urls, ...urls];
+      track.innerHTML = doubled.map((url, i) =>
+        `<div class="screenshot-card"><img src="${url}" style="width:100%;height:100%;object-fit:cover;object-position:top"><div class="ss-label">${labels[i % labels.length]}</div></div>`
+      ).join('');
+    }
+  }
+
+  // Notice banner
+  if (data.noticeBanner) {
+    document.getElementById('noticeBannerText').textContent = data.noticeBanner;
+    document.getElementById('noticeBannerEl').style.display = 'block';
+  } else {
+    document.getElementById('noticeBannerEl').style.display = 'none';
+  }
+
+  // Visibility toggles
+  const sections = {
+    showDownload: '#download .download-card',
+    showScreenshots: '#screenshots',
+    showStats: '.stats-bar',
+    showChangelog: '#whats-new'
+  };
+  Object.entries(sections).forEach(([key, sel]) => {
+    const el = document.querySelector(sel);
+    if (el && data[key] === false) el.style.display = 'none';
+    else if (el) el.style.display = '';
+  });
+}
+
+// ── LOAD CONFIG FROM FIREBASE ON PAGE LOAD ──
+CONFIG_REF.on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) applyConfig(data);
+});
+
+// ── ADMIN PANEL ──
+function openAdmin() {
+  document.getElementById('admin-panel').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Load current Firebase data into admin fields
+  CONFIG_REF.on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    const fields = ['appVersion','apkUrl','apkSize','dlBtnText','dlBtnUrl','heroBadge',
+      'heroDesc','statDownloads','latestVer','latestTitle','changelogText',
+      'screenshotUrls','logoUrl','appName1','appName2','noticeBanner'];
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+    const tc = document.getElementById('themeColor');
+    if (tc && data.themeColor) tc.value = data.themeColor;
+    // Set toggles
+    ['toggleDownload','toggleScreenshots','toggleStats','toggleChangelog'].forEach((id,i) => {
+      const keys = ['showDownload','showScreenshots','showStats','showChangelog'];
+      const btn = document.getElementById(id);
+      if (btn) {
+        const val = data[keys[i]];
+        if (val === false) btn.classList.remove('on');
+        else btn.classList.add('on');
+      }
+    });
+  });
+}
+
+function closeAdmin() {
+  document.getElementById('admin-panel').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function checkAdmin() {
+  const pass = document.getElementById('adminPass').value;
+  const hash = await hashInput(pass);
+  if (hash === ADMIN_HASH) {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminDash').classList.add('show');
+    document.getElementById('adminSaveBar').style.display = 'flex';
+    document.getElementById('adminError').classList.remove('show');
+  } else {
+    document.getElementById('adminError').classList.add('show');
+    document.getElementById('adminPass').style.borderColor = '#f44336';
+    setTimeout(() => document.getElementById('adminPass').style.borderColor = '', 2000);
+  }
+}
+
+function toggleEl(btn) { btn.classList.toggle('on'); }
+
+// ── SAVE TO FIREBASE ──
+async function applyAll() {
+  const data = {};
+  ['appVersion','apkUrl','apkSize','dlBtnText','dlBtnUrl','heroBadge','heroDesc',
+   'statDownloads','latestVer','latestTitle','changelogText','screenshotUrls',
+   'logoUrl','appName1','appName2','noticeBanner'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim()) data[id] = el.value.trim();
+  });
+  data.themeColor = document.getElementById('themeColor').value;
+  data.showDownload = document.getElementById('toggleDownload').classList.contains('on');
+  data.showScreenshots = document.getElementById('toggleScreenshots').classList.contains('on');
+  data.showStats = document.getElementById('toggleStats').classList.contains('on');
+  data.showChangelog = document.getElementById('toggleChangelog').classList.contains('on');
+
+  try {
+    await CONFIG_REF.set(data);
+    applyConfig(data);
+    const status = document.getElementById('saveStatus');
+    status.textContent = '✅ Firebase এ save হয়েছে!';
+    status.classList.add('show');
+    setTimeout(() => status.classList.remove('show'), 3000);
+  } catch(err) {
+    alert('Firebase error: ' + err.message);
+  }
+}
+
+function applyScreenshots() {
+  const urls = document.getElementById('screenshotUrls').value.split('\n').filter(u => u.trim());
+  if (!urls.length) return;
+  const track = document.getElementById('ssTrack');
+  const labels = ['Home Screen','Player','Vault','Settings','Network','Grid View','Controls','Music','Themes','Subtitles'];
+  const doubled = [...urls, ...urls];
+  track.innerHTML = doubled.map((url, i) =>
+    `<div class="screenshot-card"><img src="${url}" style="width:100%;height:100%;object-fit:cover;object-position:top"><div class="ss-label">${labels[i % labels.length]}</div></div>`
+  ).join('');
+}
+
+function applyNotice() {
+  const text = document.getElementById('noticeBanner').value;
+  if (!text) return;
+  document.getElementById('noticeBannerText').textContent = text;
+  document.getElementById('noticeBannerEl').style.display = 'block';
+}
+function hideNotice() {
+  document.getElementById('noticeBannerEl').style.display = 'none';
+}
+
+// Close admin on backdrop click
+document.getElementById('admin-panel').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+</script>
+</body>
+</html>
